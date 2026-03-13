@@ -3,14 +3,16 @@ import { calculateConicalHelix } from '../math/conicalHelix';
 import type { Position3D } from '../math/conicalHelix';
 import { elements } from '../data/elements';
 import type { ElementData } from '../data/elements';
+import { NucleusParticles } from './NucleusParticles';
 import { Line, Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ElementSpiralProps {
   onElementClick: (el: ElementData & Position3D) => void;
+  activeIsotopes: Record<number, number>;
 }
 
-export const ElementSpiral: React.FC<ElementSpiralProps> = ({ onElementClick }) => {
+export const ElementSpiral: React.FC<ElementSpiralProps> = ({ onElementClick, activeIsotopes }) => {
   const positionedElements = useMemo(() => calculateConicalHelix(elements), []);
   
   // Extract continuous line points for the spiral ribbon
@@ -29,7 +31,10 @@ export const ElementSpiral: React.FC<ElementSpiralProps> = ({ onElementClick }) 
         lineWidth={1}
       />
       
-      {/* The Elements */}
+      {/* The High-Performance Nucleon Renderer */}
+      <NucleusParticles elements={positionedElements} activeIsotopes={activeIsotopes} />
+      
+      {/* The Interactive Node Hover/Click Hitboxes & Labels */}
       {positionedElements.map((el) => (
         <ElementNode 
           key={el.atomicNumber} 

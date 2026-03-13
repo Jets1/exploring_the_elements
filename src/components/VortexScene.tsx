@@ -7,9 +7,10 @@ import type { Position3D } from '../math/conicalHelix';
 
 interface VortexSceneProps {
   onSelectElement: (el: ElementData | null) => void;
+  activeIsotopes: Record<number, number>;
 }
 
-export const VortexScene: React.FC<VortexSceneProps> = ({ onSelectElement }) => {
+export const VortexScene: React.FC<VortexSceneProps> = ({ onSelectElement, activeIsotopes }) => {
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
   const handleElementClick = (el: ElementData & Position3D) => {
@@ -71,7 +72,7 @@ export const VortexScene: React.FC<VortexSceneProps> = ({ onSelectElement }) => 
       <CameraControls ref={cameraControlsRef} makeDefault />
       
       {/* Core Math / Physics */}
-      <ElementSpiral onElementClick={handleElementClick} />
+      <ElementSpiral onElementClick={handleElementClick} activeIsotopes={activeIsotopes} />
       
     </Canvas>
   );

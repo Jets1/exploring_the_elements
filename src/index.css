@@ -185,3 +185,45 @@ body, html {
   color: #ccd6f6;
   font-weight: 300;
 }
+
+/* Isotope UI */
+.isotope-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+}
+
+.isotope-pills {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.isotope-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    color: var(--text-secondary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.isotope-pill:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.isotope-pill.active {
+    background: rgba(255,255,255,0.08);
+    font-weight: 600;
+}
+
+.nucleon-count {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.8;
+}

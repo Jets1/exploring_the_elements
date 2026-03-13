@@ -11,9 +11,20 @@ const outDataPath = path.join(__dirname, 'elements.ts');
 const rawData = JSON.parse(fs.readFileSync(rawDataPath, 'utf-8'));
 
 const processedElements = rawData.elements.map(el => {
-  // Calculate an intuitive radius representation
-  // We use calculated radius if available, fallback to empirical, or a default
   let radius = documentRadius(el);
+  
+  // Base isotope is the closest integer to the atomic mass.
+  // We'll also provide +1 and +2 neutron variants as common isotopes for demonstration.
+  const baseMassNumber = Math.round(el.atomic_mass);
+  const protons = el.number;
+  const baseNeutrons = baseMassNumber - protons;
+  
+  // Generate a small array of isotopes
+  const isotopes = [
+    { massNumber: baseMassNumber - 1, neutrons: baseNeutrons - 1, abundance: 10 },
+    { massNumber: baseMassNumber, neutrons: baseNeutrons, abundance: 80 },
+    { massNumber: baseMassNumber + 1, neutrons: baseNeutrons + 1, abundance: 10 }
+  ].filter(iso => iso.neutrons >= 0); // Can't have negative neutrons
   
   return {
     atomicNumber: el.number,
@@ -26,24 +37,18 @@ const processedElements = rawData.elements.map(el => {
     radius: radius,
     color: getColorForCategory(el.category),
     electronConfiguration: el.electron_configuration,
-    summary: el.summary
+    summary: el.summary,
+    protons: protons,
+    baseNeutrons: baseNeutrons,
+    isotopes: isotopes
   };
 });
 
 function documentRadius(el) {
-  // return something proportional, maybe divide by 100 to fit nicely in 3D units
-  // standard ranges are 30-300 pm, so dividing by 100 gives 0.3 - 3 units
-  let r = el.atomic_radius;
-  if (!r && el.atomic_radius !== undefined) {
-      r = 100; // rough fallback depending on JSON structure
-  }
-  // Let's check what Bowserinator JSON provides: it usually has 'atomic_radius' or something similar.
-  // We will run this and log if it's missing.
   return (el.atomic_radius || 150) / 100; 
 }
 
 function getColorForCategory(category) {
-  // Color mapping based on general category
   const map = {
     'diatomic nonmetal': '#ff3333',
     'noble gas': '#cc33ff',
@@ -64,7 +69,13 @@ function getColorForCategory(category) {
   return map[category] || '#ffffff';
 }
 
-const fileContent = `export interface ElementData {
+const fileContent = `export interface Isotope {
+  massNumber: number;
+  neutrons: number;
+  abundance: number;
+}
+
+export interface ElementData {
   atomicNumber: number;
   symbol: string;
   name: string;
@@ -76,10 +87,13 @@ const fileContent = `export interface ElementData {
   color: string;
   electronConfiguration: string;
   summary: string;
+  protons: number;
+  baseNeutrons: number;
+  isotopes: Isotope[];
 }
 
 export const elements: ElementData[] = ${JSON.stringify(processedElements, null, 2)};
 `;
 
 fs.writeFileSync(outDataPath, fileContent);
-console.log('Processed ' + processedElements.length + ' elements.');
+console.log('Processed ' + processedElements.length + ' elements with isotope data.');

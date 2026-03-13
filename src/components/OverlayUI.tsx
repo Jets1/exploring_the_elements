@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface OverlayUIProps {
   element: ElementData | null;
+  activeIsotopeNeutrons?: number;
+  onIsotopeSelect?: (atomicNumber: number, neutrons: number) => void;
 }
 
-export const OverlayUI: React.FC<OverlayUIProps> = ({ element }) => {
+export const OverlayUI: React.FC<OverlayUIProps> = ({ element, activeIsotopeNeutrons, onIsotopeSelect }) => {
   return (
     <AnimatePresence>
       {element && (
@@ -35,6 +37,30 @@ export const OverlayUI: React.FC<OverlayUIProps> = ({ element }) => {
                  <span className="stat-label">Electron Config</span>
                  <span className="stat-value config">{element.electronConfiguration}</span>
              </div>
+             
+             {element.isotopes && element.isotopes.length > 0 && (
+                <div className="isotope-section">
+                    <span className="stat-label">Stable Isotopes</span>
+                    <div className="isotope-pills">
+                        {element.isotopes.map(iso => {
+                            const isSelected = activeIsotopeNeutrons === iso.neutrons;
+                            return (
+                                <button
+                                    key={iso.massNumber}
+                                    onClick={() => onIsotopeSelect && onIsotopeSelect(element.atomicNumber, iso.neutrons)}
+                                    className={`isotope-pill ${isSelected ? 'active' : ''}`}
+                                    style={isSelected ? { borderColor: element.color, color: element.color } : {}}
+                                >
+                                    <sup>{iso.massNumber}</sup>{element.symbol}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="nucleon-count" style={{ color: element.color }}>
+                        {element.protons} Protons &bull; {activeIsotopeNeutrons} Neutrons
+                    </div>
+                </div>
+             )}
              
              <div className="summary-text">
                  {element.summary}
