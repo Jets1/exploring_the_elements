@@ -31,11 +31,9 @@ export const NucleusParticles: React.FC<NucleusParticlesProps> = ({ elements, ac
           ? activeIsotopes[el.atomicNumber] 
           : el.baseNeutrons;
       
-      // The radius of the nucleus scales slightly with atomic mass so it fits inside the element sphere
-      const scaleArg = el.radius * 0.4;
-      
       // Calculate local arrangement
-      const nucleons = packNucleus(el.protons, currentNeutrons, scaleArg);
+      // We pass the exact nucleon particle radius to drive the strict physical packing algorithm
+      const nucleons = packNucleus(el.protons, currentNeutrons, NUCLEON_RADIUS);
 
       // Translate local arrangement to the element's actual XYZ position in the vortex
       nucleons.forEach(n => {

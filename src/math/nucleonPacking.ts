@@ -9,8 +9,9 @@ export interface Nucleon {
 /**
  * Distributes a specific number of protons and neutrons into a densely packed
  * roughly spherical shape to simulate an atomic nucleus.
+ * Uses realistic physical packing where Volume ~ A.
  */
-export function packNucleus(protons: number, neutrons: number, radiusScale: number = 0.15): Nucleon[] {
+export function packNucleus(protons: number, neutrons: number, nucleonRadius: number): Nucleon[] {
   const total = protons + neutrons;
   if (total === 0) return [];
   
@@ -30,16 +31,20 @@ export function packNucleus(protons: number, neutrons: number, radiusScale: numb
 
   // Golden ratio angle for Fibonacci sphere distribution
   const phi = Math.PI * (3 - Math.sqrt(5));
+  
+  // The actual packed geometric radius of the entire nucleus.
+  // V_nucleus = A * V_nucleon -> R_nucleus^3 = A * R_nucleon^3 -> R_nucleus = R_nucleon * A^(1/3)
+  // We add a tiny 15% padding factor so spheres aren't perfectly intersecting
+  const nuclearRadius = nucleonRadius * Math.pow(total, 1/3) * 1.15;
 
   for (let i = 0; i < total; i++) {
     // Determine the distance from the center. 
     // We use a cube root distribution so the volume fills uniformly.
-    // The larger the nucleus (higher total), the further out particles can go.
-    const volumeIndex = i / total;
-    const r = Math.pow(volumeIndex, 1/3) * (Math.pow(total, 1/3) * radiusScale);
+    const volumeIndex = (i + 0.5) / total;
+    const r = Math.pow(volumeIndex, 1/3) * nuclearRadius;
 
     // Fibonacci sphere angular distribution
-    const y = 1 - (i / (total - 1)) * 2; // y goes from 1 to -1
+    const y = 1 - (i / (total - 1 || 1)) * 2; // y goes from 1 to -1. Handle total=1 case.
     const radiusAtY = Math.sqrt(1 - y * y); // radius at y
 
     const theta = phi * i; // golden angle increment
@@ -51,7 +56,7 @@ export function packNucleus(protons: number, neutrons: number, radiusScale: numb
     const position = new THREE.Vector3(x * r, y * r, z * r);
 
     // Apply a tiny bit of random jitter so it doesn't look perfectly algorithmic
-    const jitter = radiusScale * 0.2;
+    const jitter = nucleonRadius * 0.1;
     position.x += (Math.random() - 0.5) * jitter;
     position.y += (Math.random() - 0.5) * jitter;
     position.z += (Math.random() - 0.5) * jitter;

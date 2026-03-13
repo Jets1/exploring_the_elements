@@ -37,6 +37,7 @@ const processedElements = rawData.elements.map(el => {
     radius: radius,
     color: getColorForCategory(el.category),
     electronConfiguration: el.electron_configuration,
+    shells: el.shells || [],
     summary: el.summary,
     protons: protons,
     baseNeutrons: baseNeutrons,
@@ -86,6 +87,7 @@ export interface ElementData {
   radius: number;
   color: string;
   electronConfiguration: string;
+  shells: number[];
   summary: string;
   protons: number;
   baseNeutrons: number;

@@ -51,36 +51,72 @@ interface ElementNodeProps {
   onClick: () => void;
 }
 
+const sliceShader = (shader: any) => {
+  shader.vertexShader = `
+    varying vec3 vLocalPos;
+    ${shader.vertexShader}
+  `.replace(
+    '#include <begin_vertex>',
+    `
+    #include <begin_vertex>
+    vLocalPos = position;
+    `
+  );
+
+  shader.fragmentShader = `
+    varying vec3 vLocalPos;
+    ${shader.fragmentShader}
+  `.replace(
+    '#include <dithering_fragment>',
+    `
+    #include <dithering_fragment>
+    // 90 degree wedge cut: discard fragments in the +X, +Z quadrant
+    if (vLocalPos.x > 0.0 && vLocalPos.z > 0.0) discard;
+    `
+  );
+};
+
 const ElementNode: React.FC<ElementNodeProps> = ({ element, onClick }) => {
   const [hovered, setHover] = React.useState(false);
 
   // We scale the visual sphere by its atomic radius property.
-  // The calculated .radius falls roughly between 0.3 and 3
   const visualScale = element.radius * 0.8;
+
+  // Calculate nested radii for each electron shell
+  const shellsCount = Math.max(element.shells.length, 1);
+  const shellRadii: number[] = [];
+  for (let i = 1; i <= shellsCount; i++) {
+    shellRadii.push((visualScale / shellsCount) * i);
+  }
 
   return (
     <group position={[element.x, element.y, element.z]}>
-      {/* The Nucleus/Orb */}
-      <mesh
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
-        onPointerOver={(e) => { e.stopPropagation(); setHover(true); }}
-        onPointerOut={() => setHover(false)}
-      >
-        <sphereGeometry args={[visualScale, 32, 32]} />
-        <meshPhysicalMaterial 
-          color={element.color} 
-          emissive={element.color}
-          emissiveIntensity={hovered ? 0.8 : 0.2}
-          roughness={0.2}
-          metalness={0.8}
-          clearcoat={1}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
+      {/* Nested Shells with Slice Shader */}
+      {shellRadii.map((r, idx) => (
+        <mesh
+          key={idx}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+          onPointerOver={(e) => { e.stopPropagation(); setHover(true); }}
+          onPointerOut={() => setHover(false)}
+        >
+          <sphereGeometry args={[r, 32, 32]} />
+          <meshPhysicalMaterial 
+            color={element.color} 
+            emissive={element.color}
+            emissiveIntensity={hovered ? 0.3 : 0.05}
+            roughness={0.1}
+            metalness={0.9}
+            clearcoat={1}
+            transparent
+            opacity={0.3} // highly translucent to see inside
+            side={THREE.DoubleSide} // vital for cross-section internal faces
+            onBeforeCompile={sliceShader}
+          />
+        </mesh>
+      ))}
 
       {/* 3D Label */}
       <Text
